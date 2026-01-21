@@ -34,7 +34,7 @@ git pull origin $BRANCH
 
 # ===== INSTALL DEPS =====
 echo "📦 Installing dependencies..."
-npm install --production
+npm install --omit=dev
 
 # ===== BUILD (if using Next.js / TS) =====
 if [ -f "package.json" ]; then
