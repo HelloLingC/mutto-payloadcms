@@ -1,16 +1,38 @@
-import type { CollectionConfig } from 'payload'
+import { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
   slug: 'media',
-  access: {
-    read: () => true,
+  upload: {
+    staticDir: 'media',
+    mimeTypes: [
+      'audio/mpeg',
+      'audio/mp3',
+      'image/*',
+      'text/vtt',
+      'application/x-subrip', // .srt
+    ],
   },
   fields: [
     {
-      name: 'alt',
-      type: 'text',
+      name: 'type',
+      type: 'select',
+      options: [
+        { label: 'Audio', value: 'audio' },
+        { label: 'Subtitle', value: 'subtitle' },
+        { label: 'Image', value: 'image' },
+      ],
       required: true,
     },
+    {
+      name: 'language',
+      type: 'select',
+      options: [
+        { label: '简体中文', value: 'zh-cn'},
+        { label: '日本语', value: 'jp'},
+      ],
+      admin: {
+        description: 'For subtitles / audio language (jp, en, zh, etc.)',
+      },
+    },
   ],
-  upload: true,
 }

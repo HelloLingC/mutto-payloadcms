@@ -69,6 +69,9 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    'asmr-resources': AsmrResource;
+    tags: Tag;
+    comments: Comment;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,13 +81,16 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'asmr-resources': AsmrResourcesSelect<false> | AsmrResourcesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
   globals: {};
@@ -121,7 +127,12 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
+  nickname: string;
+  isVerified: boolean;
+  tier: 'User' | 'VIP1' | 'VIP2';
+  points?: number | null;
+  playlist?: (number | AsmrResource)[] | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -142,11 +153,64 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "asmr-resources".
+ */
+export interface AsmrResource {
+  id: number;
+  title: string;
+  description?: string | null;
+  /**
+   * If unchecked, this ASMR resource will not be visible on the public site
+   */
+  public?: boolean | null;
+  cover: number | Media;
+  images?:
+    | {
+        image: number | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  audios?:
+    | {
+        /**
+         * Track order (1, 2, 3 ...)
+         */
+        order: number;
+        title: string;
+        audioFile: number | Media;
+        /**
+         * Duration in seconds (optional)
+         */
+        duration?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  subtitles?:
+    | {
+        /**
+         * e.g. jp / en / zh
+         */
+        language: string;
+        subtitleFile: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  tags?: (number | Tag)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
-  alt: string;
+  id: number;
+  type: 'audio' | 'subtitle' | 'image';
+  /**
+   * For subtitles / audio language (jp, en, zh, etc.)
+   */
+  language?: ('zh-cn' | 'jp') | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -161,10 +225,39 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  color?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  content: string;
+  author: number | User;
+  resource: number | AsmrResource;
+  /**
+   * Parent comment for nested replies
+   */
+  parent?: (number | null) | Comment;
+  status?: ('pending' | 'approved' | 'rejected') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -181,20 +274,32 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'asmr-resources';
+        value: number | AsmrResource;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: number | Comment;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -204,10 +309,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -227,7 +332,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -238,6 +343,11 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  nickname?: T;
+  isVerified?: T;
+  tier?: T;
+  points?: T;
+  playlist?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -260,7 +370,8 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
-  alt?: T;
+  type?: T;
+  language?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -272,6 +383,66 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "asmr-resources_select".
+ */
+export interface AsmrResourcesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  public?: T;
+  cover?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  audios?:
+    | T
+    | {
+        order?: T;
+        title?: T;
+        audioFile?: T;
+        duration?: T;
+        id?: T;
+      };
+  subtitles?:
+    | T
+    | {
+        language?: T;
+        subtitleFile?: T;
+        id?: T;
+      };
+  tags?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  color?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  content?: T;
+  author?: T;
+  resource?: T;
+  parent?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
