@@ -68,10 +68,13 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
-    media: Media;
+    audio: Audio;
+    image: Image;
+    subtitle: Subtitle;
     'asmr-resources': AsmrResource;
     tags: Tag;
     comments: Comment;
+    coupons: Coupon;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,10 +83,13 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
+    audio: AudioSelect<false> | AudioSelect<true>;
+    image: ImageSelect<false> | ImageSelect<true>;
+    subtitle: SubtitleSelect<false> | SubtitleSelect<true>;
     'asmr-resources': AsmrResourcesSelect<false> | AsmrResourcesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
+    coupons: CouponsSelect<false> | CouponsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -130,9 +136,13 @@ export interface User {
   id: number;
   nickname: string;
   isVerified: boolean;
-  tier: 'User' | 'VIP1' | 'VIP2';
+  role: 'free' | 'premium' | 'admin';
   points?: number | null;
   playlist?: (number | AsmrResource)[] | null;
+  /**
+   * ASMR resources that the user has paid for and owns
+   */
+  ownedAsmrResources?: (number | AsmrResource)[] | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -159,14 +169,16 @@ export interface AsmrResource {
   id: number;
   title: string;
   description?: string | null;
+  info?: string | null;
+  price?: number | null;
   /**
    * If unchecked, this ASMR resource will not be visible on the public site
    */
   public?: boolean | null;
-  cover: number | Media;
+  cover?: (number | null) | Image;
   images?:
     | {
-        image: number | Media;
+        image: number | Image;
         caption?: string | null;
         id?: string | null;
       }[]
@@ -178,7 +190,7 @@ export interface AsmrResource {
          */
         order: number;
         title: string;
-        audioFile: number | Media;
+        audioFile: number | Audio;
         /**
          * Duration in seconds (optional)
          */
@@ -192,7 +204,7 @@ export interface AsmrResource {
          * e.g. jp / en / zh
          */
         language: string;
-        subtitleFile: number | Media;
+        subtitleFile: number | Subtitle;
         id?: string | null;
       }[]
     | null;
@@ -202,14 +214,48 @@ export interface AsmrResource {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
+ * via the `definition` "image".
  */
-export interface Media {
+export interface Image {
   id: number;
-  type: 'audio' | 'subtitle' | 'image';
-  /**
-   * For subtitles / audio language (jp, en, zh, etc.)
-   */
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audio".
+ */
+export interface Audio {
+  id: number;
+  title?: string | null;
+  language?: ('zh-cn' | 'jp') | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subtitle".
+ */
+export interface Subtitle {
+  id: number;
   language?: ('zh-cn' | 'jp') | null;
   updatedAt: string;
   createdAt: string;
@@ -254,6 +300,21 @@ export interface Comment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons".
+ */
+export interface Coupon {
+  id: number;
+  code: string;
+  value: number;
+  used?: boolean | null;
+  expiresAt?: string | null;
+  batchId?: string | null;
+  resumedBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -281,8 +342,16 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
-        relationTo: 'media';
-        value: number | Media;
+        relationTo: 'audio';
+        value: number | Audio;
+      } | null)
+    | ({
+        relationTo: 'image';
+        value: number | Image;
+      } | null)
+    | ({
+        relationTo: 'subtitle';
+        value: number | Subtitle;
       } | null)
     | ({
         relationTo: 'asmr-resources';
@@ -295,6 +364,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'comments';
         value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'coupons';
+        value: number | Coupon;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -345,9 +418,10 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   nickname?: T;
   isVerified?: T;
-  tier?: T;
+  role?: T;
   points?: T;
   playlist?: T;
+  ownedAsmrResources?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -367,10 +441,45 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
+ * via the `definition` "audio_select".
  */
-export interface MediaSelect<T extends boolean = true> {
-  type?: T;
+export interface AudioSelect<T extends boolean = true> {
+  title?: T;
+  language?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "image_select".
+ */
+export interface ImageSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subtitle_select".
+ */
+export interface SubtitleSelect<T extends boolean = true> {
   language?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -391,6 +500,8 @@ export interface MediaSelect<T extends boolean = true> {
 export interface AsmrResourcesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  info?: T;
+  price?: T;
   public?: T;
   cover?: T;
   images?:
@@ -441,6 +552,20 @@ export interface CommentsSelect<T extends boolean = true> {
   resource?: T;
   parent?: T;
   status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons_select".
+ */
+export interface CouponsSelect<T extends boolean = true> {
+  code?: T;
+  value?: T;
+  used?: T;
+  expiresAt?: T;
+  batchId?: T;
+  resumedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload'
+import { asmrResourcesReadAccess } from '../access/checkVisibility'
 
 export const AsmrResources: CollectionConfig = {
   slug: 'asmr-resources',
@@ -6,7 +7,7 @@ export const AsmrResources: CollectionConfig = {
     useAsTitle: 'title',
   },
   access: {
-    read: () => true,
+    read: asmrResourcesReadAccess,
   },
   fields: [
     // Basic info
@@ -17,7 +18,16 @@ export const AsmrResources: CollectionConfig = {
     },
     {
       name: 'description',
+      type: 'text',
+    },
+    {
+      name: 'info',
       type: 'textarea',
+    },
+    {
+      name: 'price',
+      type: 'number',
+      defaultValue: 0,
     },
     {
       name: 'public',
@@ -28,16 +38,12 @@ export const AsmrResources: CollectionConfig = {
         description: 'If unchecked, this ASMR resource will not be visible on the public site',
       },
     },
-
     // Cover image
     {
       name: 'cover',
       type: 'upload',
-      relationTo: 'media',
-      required: true,
-      filterOptions: {
-        type: { equals: 'image' },
-      },
+      relationTo: 'image',
+      required: false,
     },
 
     // Gallery images
@@ -48,11 +54,8 @@ export const AsmrResources: CollectionConfig = {
         {
           name: 'image',
           type: 'upload',
-          relationTo: 'media',
+          relationTo: 'image',
           required: true,
-          filterOptions: {
-            type: { equals: 'image' },
-          },
         },
         {
           name: 'caption',
@@ -82,11 +85,8 @@ export const AsmrResources: CollectionConfig = {
         {
           name: 'audioFile',
           type: 'upload',
-          relationTo: 'media',
+          relationTo: 'audio',
           required: true,
-          filterOptions: {
-            type: { equals: 'audio' },
-          },
         },
         {
           name: 'duration',
@@ -114,11 +114,8 @@ export const AsmrResources: CollectionConfig = {
         {
           name: 'subtitleFile',
           type: 'upload',
-          relationTo: 'media',
+          relationTo: 'subtitle',
           required: true,
-          filterOptions: {
-            type: { equals: 'subtitle' },
-          },
         },
       ],
     },

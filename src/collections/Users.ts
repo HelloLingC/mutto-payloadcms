@@ -29,15 +29,15 @@ export const Users: CollectionConfig = {
       },
     },
     {
-      name: 'tier',
+      name: 'role',
       type: 'select',
       label: 'Membership Tier',
       options: [
-        { label: 'User', value: 'User' },
-        { label: 'VIP1', value: 'VIP1' },
-        { label: 'VIP2', value: 'VIP2' },
+        { label: 'User', value: 'free' },
+        { label: 'Premium', value: 'premium' },
+        { label: 'admin', value: 'admin' },
       ],
-      defaultValue: 'User',
+      defaultValue: 'free',
       required: true,
       admin: {
         position: 'sidebar',
@@ -59,6 +59,17 @@ export const Users: CollectionConfig = {
       relationTo: 'asmr-resources',
       hasMany: true,
       label: 'Playlist',
+    },
+    {
+      name: 'ownedAsmrResources',
+      type: 'relationship',
+      relationTo: 'asmr-resources',
+      hasMany: true,
+      label: 'Owned ASMR Resources',
+      admin: {
+        description: 'ASMR resources that the user has paid for and owns',
+        position: 'sidebar',
+      },
     },
   ],
 }

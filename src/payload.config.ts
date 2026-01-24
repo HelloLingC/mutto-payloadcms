@@ -7,10 +7,13 @@ import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
 import { Users } from './collections/Users'
-import { Media } from './collections/Media'
+import { Audio } from './collections/Audio'
+import { Image } from './collections/Image'
+import { Subtitle } from './collections/Subtitle'
 import { AsmrResources } from './collections/AsmrResources'
 import { Tags } from './collections/Tags'
 import { Comments } from './collections/Comment'
+import { Coupons } from './collections/Coupons'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -22,7 +25,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, AsmrResources, Tags, Comments],
+
+  collections: [Users, Audio, Image, Subtitle, AsmrResources, Tags, Comments, Coupons],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -37,9 +41,24 @@ export default buildConfig({
   plugins: [
     s3Storage({
       collections: {
-        media: true,
+        audio: true,
+        subtitle: true,
       },
       bucket: process.env.R2_BUCKET || '',
+      config: {
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        },
+        endpoint: process.env.R2_ENDPOINT || '',
+        region: 'auto',
+      },
+    }),
+    s3Storage({
+      collections: {
+        image: true,
+      },
+      bucket: process.env.R2_IMAGE_BUCKET || '',
       config: {
         credentials: {
           accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
