@@ -3,6 +3,8 @@
 This document covers the custom Payload endpoints implemented in:
 - `/Users/lingc/Projects/nextjs/mutto-cms/src/endpoints/auth.ts`
 - `/Users/lingc/Projects/nextjs/mutto-cms/src/endpoints/content.ts`
+- `/Users/lingc/Projects/nextjs/mutto-cms/src/endpoints/giftCards.ts`
+- `/Users/lingc/Projects/nextjs/mutto-cms/src/endpoints/mediaAudio.ts`
 
 Base URL: `/api`
 
@@ -302,3 +304,81 @@ Responses:
 - `404`: resource not found
 - `409`: already owned
 - `500`: purchase update failure
+
+### `GET /api/media/audio/:id`
+
+Generate a short-lived signed URL for an audio file in a specific ASMR resource.
+
+Request:
+- Path param: `id` (ASMR resource id)
+- Query param: `filename` (required)
+- Requires valid auth session cookie/token.
+
+Rules:
+- Authenticated user required.
+- `admin` can access all audio.
+- Non-admin can access when:
+  - resource price is `0`, or
+  - user already owns the ASMR resource.
+- `filename` must match one of the resource's audio filenames.
+
+Responses:
+- `200`:
+
+```json
+{
+  "success": true,
+  "url": "https://signed-url.example"
+}
+```
+
+- `400`: missing `id` or `filename`
+- `401`: unauthenticated
+- `403`: user lacks access to paid resource
+- `404`: resource or audio file not found
+- `500`: signed URL generation failure
+
+Signed URL settings:
+- Expiration: 300 seconds
+
+### `POST /api/gift-cards/redeem`
+
+Redeem a predefined gift card code and add points to the authenticated user.
+
+Request:
+- Requires valid auth session cookie/token.
+- Body:
+
+```json
+{
+  "code": "WELCOME100"
+}
+```
+
+Supported codes:
+- `WELCOME100` (+100)
+- `SPECIAL250` (+250)
+- `PREMIUM500` (+500)
+- `MEGA1000` (+1000)
+
+Responses:
+- `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "pointsAdded": 100,
+    "newBalance": 500,
+    "giftCard": {
+      "code": "WELCOME100",
+      "description": "Welcome bonus card"
+    }
+  }
+}
+```
+
+- `400`: missing/invalid code
+- `401`: unauthenticated
+- `404`: unknown gift card code
+- `500`: redemption failure

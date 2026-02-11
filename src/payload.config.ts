@@ -16,6 +16,8 @@ import { Comments } from './collections/Comment'
 import { Coupons } from './collections/Coupons'
 import { authEndpoints } from './endpoints/auth'
 import { contentEndpoints } from './endpoints/content'
+import { giftCardsEndpoints } from './endpoints/giftCards'
+import { mediaAudioEndpoints } from './endpoints/mediaAudio'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -29,7 +31,7 @@ export default buildConfig({
   },
 
   collections: [Users, Audio, Image, Subtitle, AsmrResources, Tags, Comments, Coupons],
-  endpoints: [...authEndpoints, ...contentEndpoints],
+  endpoints: [...authEndpoints, ...contentEndpoints, ...mediaAudioEndpoints, ...giftCardsEndpoints],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
