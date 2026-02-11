@@ -1,5 +1,4 @@
 import { CollectionConfig } from 'payload'
-import { asmrResourcesReadAccess } from '../access/checkVisibility'
 
 export const AsmrResources: CollectionConfig = {
   slug: 'asmr-resources',
@@ -7,7 +6,7 @@ export const AsmrResources: CollectionConfig = {
     useAsTitle: 'title',
   },
   access: {
-    read: asmrResourcesReadAccess,
+    read: () => true,
   },
   fields: [
     // Basic info

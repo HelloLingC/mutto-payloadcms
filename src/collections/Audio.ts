@@ -1,11 +1,9 @@
 import { CollectionConfig } from 'payload'
-import { mediaReadAccess } from '../access/checkVisibility'
 
 export const Audio: CollectionConfig = {
   slug: 'audio',
   access: {
-    // Block direct listing - only accessible through AsmrResources relation
-    read: mediaReadAccess,
+    read: () => true,
   },
   upload: {
     staticDir: 'audio',

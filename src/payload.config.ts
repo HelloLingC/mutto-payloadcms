@@ -14,6 +14,8 @@ import { AsmrResources } from './collections/AsmrResources'
 import { Tags } from './collections/Tags'
 import { Comments } from './collections/Comment'
 import { Coupons } from './collections/Coupons'
+import { authEndpoints } from './endpoints/auth'
+import { contentEndpoints } from './endpoints/content'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -27,6 +29,7 @@ export default buildConfig({
   },
 
   collections: [Users, Audio, Image, Subtitle, AsmrResources, Tags, Comments, Coupons],
+  endpoints: [...authEndpoints, ...contentEndpoints],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

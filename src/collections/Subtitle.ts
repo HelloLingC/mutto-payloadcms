@@ -1,12 +1,7 @@
 import { CollectionConfig } from 'payload'
-import { mediaReadAccess } from '../access/checkVisibility'
 
 export const Subtitle: CollectionConfig = {
   slug: 'subtitle',
-  access: {
-    // Block direct listing - only accessible through AsmrResources relation
-    read: mediaReadAccess,
-  },
   upload: {
     staticDir: 'subtitle',
     mimeTypes: [
